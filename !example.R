@@ -5,7 +5,10 @@ library(lemon)
 load("data_raw.rda")
 source("!qrdhs.R")
 
+# The interested quantiles
 grid.p <- c(seq(0.05,0.95,by=0.05))
+# Number of cores used in parallel MCMC process
+cpu = 6
 
 nburn <- 3000
 nsave <- 9000
@@ -29,7 +32,7 @@ for(sv in c(FALSE,TRUE)){
   message("Estimating: ",sl.cn,", sv=",sv,".")
   Yt <- Y[-1,,drop=FALSE]
   Xt <- Yt^0
-  est <- tvpqr.grid(Y=Yt,X=Xt,Xout=NULL,p=grid.p,cpu=6,tvp=prior,sv=sv,fhorz=0,
+  est <- tvpqr.grid(Y=Yt,X=Xt,Xout=NULL,p=grid.p,cpu=cpu,tvp=prior,sv=sv,fhorz=0,
                     nburn=nburn,nsave=nsave,thinfac=thinfac,out="mcmc")
   bt_store <- est$bt
   sig2_store <- est$sig2

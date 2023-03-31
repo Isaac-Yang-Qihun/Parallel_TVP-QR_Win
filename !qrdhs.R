@@ -4,12 +4,11 @@ require(Matrix)
 require(MASS)
 require(spam)
 require(pgdraw)
-Sys.setenv("PKG_CXXFLAGS"="-std=c++11") # mac
+# Rcpparmadillo Packages
+require(FFBS)
+require(JPR)
 
-# C++ functions
-sourceCpp("ffbs.cpp")   # C++ implementation of FFBS
-sourceCpp("jpr_qr.cpp") # C++ implementation of the JPR algorithm for QRs
-source("aux.R")         # some auxiliary functions
+source("auxiliary.R")         # some auxiliary functions
 source("dsp_aux.R")     # functions for dynamic horseshoe: https://rss.onlinelibrary.wiley.com/doi/10.1111/rssb.12325
 
 # -----------------------------------------------------------------------------------------
@@ -157,7 +156,7 @@ tvpqr <- function(Y,X,Xout=NULL,bt_init=NULL,mode="qr",p=0.5,tvp="dhs",sv=FALSE,
       
       draw <- try(t(ffbs(t(as.matrix(y_new)),X_new,matrix(1,T,1),steq_var,K,1,T,matrix(0,K,1),diag(K)*tau0)),silent=TRUE)
       if(is(draw,"try-error")){
-        draw <- ffbs_R(as.matrix(y_new),X_new,matrix(1,T,1),steq_var,K,1,tt,matrix(0,K,1),diag(K)*tau0)
+        draw <- ffbs_R(as.matrix(y_new),X_new,matrix(1,T,1),steq_var,K,1,T,matrix(0,K,1),diag(K)*tau0)
       }
       omega <- diff(draw, differences = D)
       beta0 <- matrix(draw[1:D,], nr = D)
@@ -170,7 +169,7 @@ tvpqr <- function(Y,X,Xout=NULL,bt_init=NULL,mode="qr",p=0.5,tvp="dhs",sv=FALSE,
     }else if(tvp=="shs"){
       draw <- try(t(ffbs(t(as.matrix(y_new)),X_new,matrix(1,T,1),steq_var,K,1,T,matrix(0,K,1),10*diag(K))),silent=TRUE)
       if(is(draw,"try-error")){
-        draw <- ffbs_R(as.matrix(y_new),X_new,matrix(1,T,1),steq_var,K,1,tt,matrix(0,K,1),10*diag(K))
+        draw <- ffbs_R(as.matrix(y_new),X_new,matrix(1,T,1),steq_var,K,1,T,matrix(0,K,1),10*diag(K))
       }
       omega <- rbind(apply(draw,2,function(x){mean(diff(x))}),diff(draw, differences = D))
       for(k in 1:K){
@@ -187,7 +186,7 @@ tvpqr <- function(Y,X,Xout=NULL,bt_init=NULL,mode="qr",p=0.5,tvp="dhs",sv=FALSE,
     }else if(tvp=="iG"){
       draw <- try(t(ffbs(t(as.matrix(y_new)),X_new,matrix(1,T,1),steq_var,K,1,T,matrix(0,K,1),10*diag(K))),silent=TRUE)
       if(is(draw,"try-error")){
-        draw <- ffbs_R(as.matrix(y_new),X_new,matrix(1,T,1),steq_var,K,1,tt,matrix(0,K,1),10*diag(K))
+        draw <- ffbs_R(as.matrix(y_new),X_new,matrix(1,T,1),steq_var,K,1,T,matrix(0,K,1),10*diag(K))
       }
       omega <- diff(draw, differences = D)
       for(k in 1:K){
@@ -339,7 +338,11 @@ tvpqr.grid <- function(Y,X,Xout=NULL,p=seq(0.05,0.95,by=0.05),cpu=1,tvp="dhs",sv
                            nburn=nburn,nsave=nsave,thinfac=thinfac,quiet=FALSE)
     }
   }else{
-    p.list <- foreach(pp = 1:P) %dopar% {
+    p.list <- foreach(pp = 1:P,
+                      .packages = c("GIGrvg","Rcpp","Matrix","MASS","spam","pgdraw","FFBS","JPR"),
+                      .export=ls(.GlobalEnv),
+                      .noexport = c("nburn", "nsave", "sv", "thinfac", "Y"),
+                      .verbose = TRUE) %dopar% {
       tvpqr(Y=Y,X=X,Xout=Xout,mode="qr",p=p.grid[pp],tvp=tvp,sv=sv,
            nburn=nburn,nsave=nsave,thinfac=thinfac,quiet=FALSE)
     }

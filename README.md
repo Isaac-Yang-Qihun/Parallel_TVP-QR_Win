@@ -7,6 +7,6 @@ Please follow the following steps to run the algorithm.
 1.Install "FFBS_1.0.tar.gz" and "JPR_1.0.tar.gz" locally in your R.
 2.Open every single .R file
 3.Install the prerequisites R packages (Rstudio is recommended for helping you install them by its notification appeared in every .R file you have opened)
-4.Run the algorithm with default dataset or your dataset.
+4.Run the algorithm with default dataset or your dataset after select the number of cores and quantiles by setting the variables $cpu$ and $grid.p$, respectively.
 
 If you have any problem, please contact me.
